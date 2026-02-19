@@ -17,9 +17,9 @@ export const HomePage = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
 
   // --- LOGIKA PENGECEKAN WEEKEND ---
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  // const today = new Date();
+  // const dayOfWeek = today.getDay();
+  // const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
   // 1. Data Fetching
   const { data: userResponse, isLoading: userLoading } = useGetDataUser();
@@ -128,26 +128,36 @@ export const HomePage = () => {
             </select>
 
             {/* TOMBOL ABSENSI (Hanya muncul jika bukan Weekend) */}
-            {!isWeekend ? (
-              <button
-                disabled={prosesAbsen}
-                onClick={() => kirimAbsen({}, { onSuccess: () => updateTabel() })}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 px-5 py-2.5 rounded-lg font-semibold shadow-lg transition-all active:scale-95"
-              >
-                {prosesAbsen ? "Memproses..." : "Absen Masuk"}
-              </button>
-            ) : (
-              <div className="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                <span>🚫</span> Libur Akhir Pekan
-              </div>
-            )}
-            {/* <button
+            <button
               disabled={prosesAbsen}
-              onClick={() => kirimAbsen({}, { onSuccess: () => updateTabel() })}
+              onClick={() => {
+                kirimAbsen(
+                  {},
+                  {
+                    onSuccess: () => {
+                      updateTabel();
+                      // toast.success("Absen berhasil!");
+                    },
+                    onError: () => {
+                      // Menampilkan pesan error dari backend (termasuk error weekend)
+                      // toast.error(error.response?.data?.message || "Gagal absen");
+                    },
+                  },
+                );
+              }}
               className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 px-5 py-2.5 rounded-lg font-semibold shadow-lg transition-all active:scale-95"
             >
               {prosesAbsen ? "Memproses..." : "Absen Masuk"}
-            </button> */}
+            </button>
+
+            {/* BLOK KONDISIONAL UNTUK WEEKEND DIHAPUS */}
+            {/* Kode berikut dihapus:
+            {!isWeekend ? (
+              <button>...</button>
+            ) : (
+              <div>Libur Akhir Pekan</div>
+            )}
+            */}
             <button onClick={downloadLaporanPDF} className="bg-[#312d4b] border border-gray-600 hover:border-indigo-400 px-5 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2">
               📄 Cetak PDF
             </button>
