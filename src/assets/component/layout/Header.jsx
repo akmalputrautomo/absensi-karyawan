@@ -22,14 +22,6 @@ const Header = ({ toggleSidebar, title, subtitle }) => {
         </div>
 
         {/* Stats Cards */}
-        {/* <div className="flex gap-3">
-          {stats?.map((stat, index) => (
-            <div key={index} className="bg-[#25213b] rounded-xl px-4 py-2 border border-purple-500/20">
-              <p className="text-gray-400 text-xs">{stat.label}</p>
-              <p className="text-white font-bold text-lg">{stat.value}</p>
-            </div>
-          ))}
-        </div> */}
       </div>
     </header>
   );
