@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import Header from "../../assets/component/layout/Header";
 import UserTable from "../../assets/component/admin/UserTable";
-import Sidebar from "../../assets/component/layout/SideBar";
+import Sidebar from "../../assets/component/layout/Sidebar";
 
 export const HomeAdmin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

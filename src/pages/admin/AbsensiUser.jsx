@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
 import Header from "../../assets/component/layout/Header";
-import Sidebar from "../../assets/component/layout/SideBar";
+import Sidebar from "../../assets/component/layout/Sidebar";
 
 export const AbsensiUser = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
