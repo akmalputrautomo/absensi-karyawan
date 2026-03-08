@@ -70,8 +70,6 @@ const UserTable = ({ users, onDownloadPDF }) => {
                 </td>
                 <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right">
                   <div className="flex items-center justify-end gap-1 sm:gap-2">
-                    {/* <button className="text-gray-400 hover:text-indigo-400 transition-colors text-xs sm:text-sm p-1">👁️</button>
-                    <button className="text-gray-400 hover:text-yellow-400 transition-colors text-xs sm:text-sm p-1">✏️</button> */}
                     <button className="text-gray-400 hover:text-red-400 transition-colors text-xs sm:text-sm p-1">🗑️</button>
                   </div>
                 </td>
