@@ -8,22 +8,19 @@ const AbsenUser = async (input) => {
   return response.data;
 };
 
+// Di service (UseAbsenUser.js)
 const UseAbsenUser = () => {
   return useMutation({
     mutationFn: AbsenUser,
-    // 2. Handle SUKSES di sini
     onSuccess: () => {
-      toast.success("Berhasil Absen!");
+      toast.success("Berhasil Absen!"); // <-- HANYA 1 TOAST
     },
-    // 3. Handle ERROR di sini
     onError: (error) => {
       const status = error.response?.status;
       const message = error.response?.data?.message;
 
-      if (status === 401) {
-        toast.error("");
-      } else if (status === 400) {
-        toast.error(message || "anda sudah absen ");
+      if (status === 400) {
+        toast.error(message || "Anda sudah absen hari ini"); // <-- HANYA 1 TOAST
       }
     },
   });

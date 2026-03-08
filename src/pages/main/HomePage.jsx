@@ -188,17 +188,16 @@ export const HomePage = () => {
     }
   };
 
+  // Di HomePage.jsx - handleAbsen
   const handleAbsen = () => {
     kirimAbsen(
       {},
       {
         onSuccess: () => {
           updateTabel();
-          toast.success("Absen berhasil dicatat!");
+          // HAPUS toast.success dari sini
         },
-        onError: (error) => {
-          toast.error(error.response?.data?.message || "Gagal absen");
-        },
+        // HAPUS onError dari sini
       },
     );
   };
