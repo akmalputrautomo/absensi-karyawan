@@ -1,22 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { useGetDataUseradmin } from "../../service/admin/Users";
-import { useNavigate } from "react-router-dom";
-import { CookieKeys, CookieStorage } from "../../utils/cookies";
-
-// 1. IMPORT PDF TOOLS
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import Sidebar from "../../assets/component/layout/SideBar";
+import Header from "../../assets/component/layout/Header";
+import UserTable from "../../assets/component/admin/UserTable";
 
 export const HomeAdmin = () => {
-  const navigate = useNavigate();
-
-  // Fetching Data User
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: usersResponse, isLoading: loadingUsers } = useGetDataUseradmin();
-
-  // Mapping Data
   const allUsers = usersResponse?.data || [];
 
-  // 2. FUNGSI DOWNLOAD PDF DAFTAR USER
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   const downloadUserPDF = () => {
     try {
       if (allUsers.length === 0) {
@@ -24,155 +22,172 @@ export const HomeAdmin = () => {
         return;
       }
 
-      const doc = jsPDF();
+      const doc = jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
 
-      // Header Laporan
-      doc.setFontSize(18);
-      doc.text("DAFTAR KARYAWAN / USER", 14, 20);
+      // Header dengan styling
+      doc.setFillColor(79, 70, 229);
+      doc.rect(0, 0, 210, 30, "F");
 
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("LAPORAN DATA KARYAWAN", 105, 15, { align: "center" });
+
+      // Info section
+      doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Total Terdaftar: ${allUsers.length} User`, 14, 28);
-      doc.text(`Tanggal Cetak: ${new Date().toLocaleString("id-ID")}`, 14, 33);
+      doc.setFont("helvetica", "normal");
 
-      // Mapping Kolom dan Baris
-      const tableColumn = ["No", "Nama Karyawan", "Email", "Status"];
-      const tableRows = allUsers.map((u, index) => [index + 1, u.name || "N/A", u.email || "-", "AKTIF"]);
+      const date = new Date().toLocaleDateString("id-ID", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
-      // Generate Table
+      doc.text(`Tanggal Cetak: ${date}`, 14, 40);
+      doc.text(`Total Karyawan: ${allUsers.length} orang`, 14, 46);
+      doc.text(`Status: Aktif`, 14, 52);
+
+      // Table
+      const tableColumn = ["No", "Nama Karyawan", "Email", "Status", "Terdaftar"];
+      const tableRows = allUsers.map((u, index) => [index + 1, u.name || "-", u.email || "-", "Aktif", u.createdAt ? new Date(u.createdAt).toLocaleDateString("id-ID") : "-"]);
+
       autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: 40,
-        theme: "grid",
-        headStyles: { fillColor: [79, 70, 229], halign: "center" }, // Indigo
-        styles: { fontSize: 9, halign: "left" },
+        startY: 60,
+        theme: "striped",
+        headStyles: {
+          fillColor: [79, 70, 229],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          halign: "center",
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 5,
+        },
         columnStyles: {
           0: { halign: "center", cellWidth: 15 },
-          3: { halign: "center" },
+          3: { halign: "center", cellWidth: 25 },
+          4: { halign: "center", cellWidth: 30 },
+        },
+        alternateRowStyles: {
+          fillColor: [245, 247, 250],
         },
       });
 
-      doc.save(`Daftar_User_Absensi_${new Date().getTime()}.pdf`);
+      // Footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Halaman ${i} dari ${pageCount} - Dicetak menggunakan Sistem Absensi`, 105, 287, { align: "center" });
+      }
+
+      doc.save(`Laporan_Karyawan_${new Date().getTime()}.pdf`);
     } catch (error) {
       console.error("Gagal cetak PDF:", error);
       alert("Terjadi kesalahan saat membuat PDF.");
     }
   };
 
-  const handleLogout = () => {
-    CookieStorage.remove(CookieKeys.AuthToken);
-    navigate("/login");
-  };
-
-  const goToAbsensi = () => {
-    navigate("/adminabsensi");
-  };
-  const goTohome = () => {
-    navigate("/");
-  };
-
   if (loadingUsers) {
     return (
-      <div className="min-h-screen bg-[#28243d] flex items-center justify-center text-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="animate-pulse tracking-widest text-sm text-gray-400">MEMUAT DATA...</p>
+      <div className="min-h-screen bg-[#1a1625] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400 animate-pulse">Memuat data...</p>
         </div>
       </div>
     );
   }
 
+  const stats = [
+    { label: "Total Karyawan", value: allUsers.length },
+    { label: "Aktif", value: allUsers.length },
+    { label: "Hari Ini", value: new Date().toLocaleDateString("id-ID", { weekday: "short" }) },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#28243d] text-white font-sans p-4 lg:p-8">
-      <div className="max-w-[1000px] mx-auto">
-        {/* HEADER */}
-        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
-              Admin <span className="text-indigo-400">Panel</span>
-            </h1>
-            <p className="text-gray-400 mt-2 text-sm">Manajemen akun dan kontrol akses karyawan.</p>
+    <div className="min-h-screen bg-[#1a1625] flex">
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-4 lg:p-8">
+          {/* Header */}
+          <Header toggleSidebar={toggleSidebar} title="Dashboard Admin" subtitle="Selamat datang kembali, Admin! Kelola data karyawan dan absensi di sini." stats={stats} />
+
+          {/* Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* Stat Cards */}
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-indigo-200 text-sm mb-1">Total Karyawan</p>
+                  <h3 className="text-3xl font-bold text-white">{allUsers.length}</h3>
+                </div>
+                <div className="text-4xl">👥</div>
+              </div>
+              <div className="mt-4 text-indigo-200 text-sm">↑ 12% dari bulan lalu</div>
+            </div>
+
+            <div className="bg-[#312d4b] rounded-2xl p-6 border border-purple-500/20">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Absensi Hari Ini</p>
+                  <h3 className="text-3xl font-bold text-white">24</h3>
+                </div>
+                <div className="text-4xl">📊</div>
+              </div>
+              <div className="mt-4 text-gray-400 text-sm">8 karyawan belum absen</div>
+            </div>
+
+            <div className="bg-[#312d4b] rounded-2xl p-6 border border-purple-500/20">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Izin Hari Ini</p>
+                  <h3 className="text-3xl font-bold text-white">3</h3>
+                </div>
+                <div className="text-4xl">📝</div>
+              </div>
+              <div className="mt-4 text-gray-400 text-sm">2 pending approval</div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <button onClick={goToAbsensi} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg active:scale-95 flex items-center gap-2">
-              📊 Data Absensi
-            </button>
-            <button onClick={handleLogout} className="bg-red-600/20 text-red-400 border border-red-500/50 hover:bg-red-600 hover:text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-95">
-              Keluar
-            </button>
-            <button
-              onClick={goTohome}
-              className="bg-green-600/20 text-green-400 border border-green-500/50 hover:bg-green-600 hover:text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-95 flex items-center gap-2"
-            >
-              🏠 Home
-            </button>
-          </div>
+          {/* User Table */}
+          <UserTable users={allUsers} onDownloadPDF={downloadUserPDF} />
 
-          <div className="bg-[#312d4b] px-6 py-3 rounded-2xl border border-gray-700 shadow-lg text-center min-w-[150px]">
-            <p className="text-gray-400 text-[10px] uppercase tracking-widest mb-1">Total Karyawan</p>
-            <h3 className="text-2xl font-bold text-indigo-400">
-              {allUsers.length} <span className="text-xs font-normal text-white">User</span>
-            </h3>
-          </div>
-        </header>
-
-        {/* TABLE SECTION */}
-        <div className="bg-[#312d4b] rounded-2xl border border-gray-700 overflow-hidden shadow-2xl">
-          <div className="p-6 border-b border-gray-700 bg-[#353152] flex justify-between items-center">
-            <h3 className="font-bold text-lg">Daftar Akun Karyawan</h3>
-            {/* BUTTON CETAK PDF */}
-            <button onClick={downloadUserPDF} className="text-xs bg-[#2d2945] hover:border-indigo-500 border border-gray-600 px-4 py-2 rounded-lg transition-all font-semibold flex items-center gap-2 active:scale-95">
-              <span>📄</span> Cetak PDF
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="text-gray-400 text-[10px] uppercase tracking-[0.2em] bg-[#2d2945]">
-                  <th className="px-8 py-5">Informasi User</th>
-                  <th className="px-8 py-5 text-center">Email</th>
-                  <th className="px-8 py-5 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {allUsers.length > 0 ? (
-                  allUsers.map((u, idx) => (
-                    <tr key={u._id || idx} className="hover:bg-white/5 transition-colors group">
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center font-bold text-indigo-400 uppercase">{u.name?.charAt(0) || "U"}</div>
-                          <div>
-                            <div className="font-semibold text-gray-200 group-hover:text-indigo-300 transition-colors">{u.name}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 text-center">
-                        <code className="text-[10px] bg-black/30 px-2 py-1 rounded text-gray-400">{u.email}</code>
-                      </td>
-                      <td className="px-8 py-5 text-right">
-                        <span className="bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Aktif</span>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="3" className="px-8 py-20 text-center text-gray-500 text-sm italic">
-                      Tidak ada data user yang ditemukan.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* Recent Activity */}
+          {/* <div className="mt-6 bg-[#312d4b] rounded-2xl border border-purple-500/20 p-6">
+            <h3 className="text-white font-bold text-lg mb-4">📈 Aktivitas Terbaru</h3>
+            <div className="space-y-4">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="flex items-center gap-4 p-3 hover:bg-white/5 rounded-xl transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">👤</div>
+                  <div className="flex-1">
+                    <p className="text-white text-sm">
+                      <span className="font-semibold">John Doe</span> melakukan absensi masuk
+                    </p>
+                    <p className="text-gray-400 text-xs">5 menit yang lalu</p>
+                  </div>
+                  <span className="text-green-400 text-xs bg-green-500/10 px-2 py-1 rounded-full">Berhasil</span>
+                </div>
+              ))}
+            </div>
+          </div> */}
         </div>
-
-        <footer className="mt-12 py-6 border-t border-gray-800 text-center">
-          <p className="text-gray-500 text-[10px] tracking-widest uppercase">Admin Management Panel • Amaw Absensi</p>
-        </footer>
-      </div>
+      </main>
     </div>
   );
 };
+
+export default HomeAdmin;

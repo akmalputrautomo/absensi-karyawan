@@ -22,8 +22,22 @@ export const Routerlist = () => {
         <Route path="/login" element={<LoginKaryawan />} />
         <Route path="/register" element={<RegisterKaryawan />} />
 
-        <Route path="/admin" element={<HomeAdmin />} />
-        <Route path="/adminabsensi" element={<AbsensiUser />} />
+        <Route
+          path="/admin"
+          element={
+            <Protected>
+              <HomeAdmin />
+            </Protected>
+          }
+        />
+        <Route
+          path="/adminabsensi"
+          element={
+            <Protected>
+              <AbsensiUser />
+            </Protected>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
